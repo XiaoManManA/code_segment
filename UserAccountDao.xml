@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.jiuzhuang.modules.sys.dao.UserAccountDao">
+
+    <select id="selectMapByUserId" resultType="java.util.HashMap">
+        SELECT user_id, CASE user_type WHEN 1 THEN '会员' WHEN 2 THEN '分享经销商' WHEN 3 THEN '区域代理商' ELSE '其他' END user_type, invite_qr_code, name, total_commission_cash / 100 total_commission_cash, total_mention_cash / 100 total_withdrawal_cash, (total_commission_cash - total_mention_cash) / 100 can_withdrawal_cash, integral FROM tb_user_account WHERE user_id = #{userId}
+    </select>
+
+    <update id="updateUserAccount" parameterType="java.util.HashMap">
+        UPDATE tb_user_account SET update_time = NOW()
+        <if test="type == 3">
+            ,total_commission_cash = total_commission_cash + #{commissionCash}
+        </if>
+        <if test="type == 4">
+            ,total_mention_cash = total_mention_cash + #{withdrawalCash}
+        </if>
+        <if test="type == 5">
+            ,total_mention_cash = total_mention_cash - #{withdrawalCash}
+        </if>
+        <if test="type == 6">
+            ,integral = integral + #{dailySignIntegral}
+        </if>
+        <if test="type == 7">
+            ,integral = integral - #{consumeIntegral}
+        </if>
+        <if test="type == 8">
+            ,integral = integral + #{consumeIntegral}
+        </if>
+         where user_id = #{userId}
+    </update>
+
+    <select id="selectAgentList" resultType="java.util.HashMap">
+        SELECT user_id, area, name, phone FROM tb_user_account where user_type = 3
+    </select>
+
+</mapper>

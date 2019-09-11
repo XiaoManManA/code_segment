@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.jiuzhuang.modules.sys.dao.UserRelationDao">
+
+    <select id="selectUserRelationByLevel" resultType="java.util.HashMap">
+        SELECT u.avatar_url, ua.name, CASE ua.user_type WHEN 1 THEN '会员' WHEN 2 THEN '分享经销商' WHEN 3 THEN '区域代理商' ELSE '其他' END user_type, ur.create_time, IFNULL(temp.spread_num, 0) spread_num FROM tb_user_relation ur LEFT JOIN tb_user u USING (user_id) LEFT JOIN tb_user_account ua USING (user_id) LEFT JOIN ( SELECT p1 user_id, COUNT(p1) spread_num FROM tb_user_relation WHERE p1 != 0 AND p1 != #{userId} GROUP BY p1 ) temp USING (user_id)
+        <if test="level == 1">
+            WHERE p1 = #{userId}
+        </if>
+        <if test="level == 2">
+            WHERE p2 = #{userId}
+        </if>
+        ORDER BY ur.id DESC
+    </select>
+
+    <select id="selectUserP1" resultType="java.lang.Long">
+        SELECT p1 FROM tb_user_relation WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectUserRelationMap" resultType="java.util.HashMap">
+        SELECT ur.user_id, any_value (ua.user_type) user_type, any_value (ua.`name`) name, any_value (ur.p1) p1_user_id, any_value (p1ua.user_type) p1_user_type, any_value (ur.p2) p2_user_id, any_value (p2ua.user_type) p2_user_type FROM tb_user_relation ur LEFT JOIN tb_user_account ua USING (user_id) LEFT JOIN tb_user_account p1ua ON ur.p1 = p1ua.user_id LEFT JOIN tb_user_account p2ua ON ur.p2 = p2ua.user_id WHERE ur.user_id = #{userId} GROUP BY ur.user_id
+    </select>
+
+</mapper>
